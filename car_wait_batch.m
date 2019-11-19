@@ -1,5 +1,5 @@
 function [h_ave_wait_time, c_ave_wait_time, h_pass_number, c_pass_number] = ...
-    wait_another_batch(lambda_h, lambda_c, ...
+    car_wait_batch(lambda_h, lambda_c, ...
                        max_time, max_episode, ...
                        h_speed, c_speed)
 
@@ -39,10 +39,6 @@ c_stage_all = cell(MAX_EPISODE, 1);
 %% Star simulation
 
 for episode = 1:MAX_EPISODE
-    
-%     if mod(episode, 100) == 0
-%         fprintf('Episode: %d\n', episode);
-%     end
 
     h_arr = poissrnd(LAMBDA_H, MAX_TIME, 1);
     c_arr = poissrnd(LAMBDA_C, MAX_TIME, 1);
@@ -70,10 +66,14 @@ for episode = 1:MAX_EPISODE
         h_onroad = h_stage(h_leave_idx + 1 : h_idx, time);
         c_onroad = c_stage(c_leave_idx + 1 : c_idx, time);
 
-        if isempty(h_onroad) && ~isempty(c_onroad)
+        if ~isempty(h_onroad)
+            if sum(c_onroad) == 0
+                move_side = 'h';
+            else
+                move_side = 't';
+            end
+        else
             move_side = 'c';
-        elseif ~isempty(h_onroad) && isempty(c_onroad)
-            move_side = 'h';
         end
 
         if move_side == 'h'
@@ -84,6 +84,13 @@ for episode = 1:MAX_EPISODE
             end
         elseif move_side == 'c'
             c_stage(c_leave_idx + 1 : c_idx, time + 1) = c_onroad + C_SPEED;
+            while c_stage(c_leave_idx + 1, time + 1) >= 1
+                c_stage(c_leave_idx + 1, time + 2 : end) = -2;
+                c_leave_idx = c_leave_idx + 1;
+            end
+        elseif move_side == 't'
+            c_stage(c_leave_idx + 1 : c_idx, time + 1) = ...
+                c_onroad + C_SPEED * (c_onroad ~= 0);
             while c_stage(c_leave_idx + 1, time + 1) >= 1
                 c_stage(c_leave_idx + 1, time + 2 : end) = -2;
                 c_leave_idx = c_leave_idx + 1;
