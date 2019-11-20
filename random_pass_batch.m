@@ -1,13 +1,13 @@
 function [h_ave_wait_time, c_ave_wait_time, ...
           h_pass_number, c_pass_number, ...
           total_ave_wait_time, total_pass_number] = ...
-          car_wait_batch(lambda_h, lambda_c, ...
+          random_pass_batch(lambda_h, lambda_c, ...
                              max_time, max_episode, ...
                              h_speed, c_speed)
 
 % Parameters
-LAMBDA_H = 0.001;
-LAMBDA_C = 0.001;
+LAMBDA_H = 0.1;
+LAMBDA_C = 0.1;
 MAX_TIME = 100;
 MAX_EPISODE = 100;
 H_SPEED = 0.2;
@@ -41,6 +41,10 @@ c_stage_all = cell(MAX_EPISODE, 1);
 %% Star simulation
 
 for episode = 1:MAX_EPISODE
+    
+%     if mod(episode, 100) == 0
+%         fprintf('Episode: %d\n', episode);
+%     end
 
     h_arr = poissrnd(LAMBDA_H, MAX_TIME, 1);
     c_arr = poissrnd(LAMBDA_C, MAX_TIME, 1);
@@ -68,31 +72,25 @@ for episode = 1:MAX_EPISODE
         h_onroad = h_stage(h_leave_idx + 1 : h_idx, time);
         c_onroad = c_stage(c_leave_idx + 1 : c_idx, time);
 
-        if ~isempty(h_onroad)
-            if sum(c_onroad) == 0
-                move_side = 'h';
-            else
-                move_side = 't';
-            end
-        else
+        if isempty(h_onroad) && ~isempty(c_onroad)
             move_side = 'c';
+        elseif ~isempty(h_onroad) && isempty(c_onroad)
+            move_side = 'h';
+        else
+            move_side = ['h', 'c'];
+            move_side = move_side(randi(2, 1));
         end
 
         if move_side == 'h'
             h_stage(h_leave_idx + 1 : h_idx, time + 1) = h_onroad + H_SPEED;
+            c_stage(c_leave_idx + 1 : c_idx, time + 1) = c_onroad;
             while h_stage(h_leave_idx + 1, time + 1) >= 1
                 h_stage(h_leave_idx + 1, time + 2 : end) = -2;
                 h_leave_idx = h_leave_idx + 1;
             end
         elseif move_side == 'c'
             c_stage(c_leave_idx + 1 : c_idx, time + 1) = c_onroad + C_SPEED;
-            while c_stage(c_leave_idx + 1, time + 1) >= 1
-                c_stage(c_leave_idx + 1, time + 2 : end) = -2;
-                c_leave_idx = c_leave_idx + 1;
-            end
-        elseif move_side == 't'
-            c_stage(c_leave_idx + 1 : c_idx, time + 1) = ...
-                c_onroad + C_SPEED * (c_onroad ~= 0);
+            h_stage(h_leave_idx + 1 : h_idx, time + 1) = h_onroad;
             while c_stage(c_leave_idx + 1, time + 1) >= 1
                 c_stage(c_leave_idx + 1, time + 2 : end) = -2;
                 c_leave_idx = c_leave_idx + 1;
@@ -146,11 +144,6 @@ for episode = 1:MAX_EPISODE
     c_pass_number = sum(c_stage >= 1, 1:2);
     total_pass_number = h_pass_number + c_pass_number;
 
-    % h_stage
-    % c_stage
-    % h_wait_time
-    % c_wait_time
-
     h_ave_wait_time_all(episode) = h_ave_wait_time;
     c_ave_wait_time_all(episode) = c_ave_wait_time;
 
@@ -159,6 +152,7 @@ for episode = 1:MAX_EPISODE
     
     total_ave_wait_time_all(episode) = total_ave_wait_time;
     total_pass_number_all(episode) = total_pass_number;
+
 end
 
 h_ave_wait_time = mean(h_ave_wait_time_all);

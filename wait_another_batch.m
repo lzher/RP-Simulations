@@ -1,7 +1,9 @@
-function [h_ave_wait_time, c_ave_wait_time, h_pass_number, c_pass_number] = ...
-    wait_another_batch(lambda_h, lambda_c, ...
-                       max_time, max_episode, ...
-                       h_speed, c_speed)
+function [h_ave_wait_time, c_ave_wait_time, ...
+          h_pass_number, c_pass_number, ...
+          total_ave_wait_time, total_pass_number] = ...
+          wait_another_batch(lambda_h, lambda_c, ...
+                             max_time, max_episode, ...
+                             h_speed, c_speed)
 
 % Parameters
 LAMBDA_H = 0.1;
@@ -106,6 +108,8 @@ h_ave_wait_time_all = zeros(MAX_EPISODE, 1);
 c_ave_wait_time_all = zeros(MAX_EPISODE, 1);
 h_pass_number_all = zeros(MAX_EPISODE, 1);
 c_pass_number_all = zeros(MAX_EPISODE, 1);
+total_ave_wait_time_all = zeros(MAX_EPISODE, 1);
+total_pass_number_all = zeros(MAX_EPISODE, 1);
 
 for episode = 1:MAX_EPISODE
     
@@ -119,15 +123,21 @@ for episode = 1:MAX_EPISODE
 
     h_ave_wait_time = mean(h_wait_time);
     c_ave_wait_time = mean(c_wait_time);
+    total_ave_wait_time = mean([h_wait_time; c_wait_time]);
+    
     if isnan(h_ave_wait_time)
         h_ave_wait_time = 0;
     end
     if isnan(c_ave_wait_time)
         c_ave_wait_time = 0;
     end
+    if isnan(total_ave_wait_time)
+        total_ave_wait_time = 0;
+    end
 
     h_pass_number = sum(h_stage >= 1, 1:2);
     c_pass_number = sum(c_stage >= 1, 1:2);
+    total_pass_number = h_pass_number + c_pass_number;
 
     % h_stage
     % c_stage
@@ -139,17 +149,24 @@ for episode = 1:MAX_EPISODE
 
     h_pass_number_all(episode) = h_pass_number;
     c_pass_number_all(episode) = c_pass_number;
+    
+    total_ave_wait_time_all(episode) = total_ave_wait_time;
+    total_pass_number_all(episode) = total_pass_number;
+
 end
 
 h_ave_wait_time = mean(h_ave_wait_time_all);
 c_ave_wait_time = mean(c_ave_wait_time_all);
 h_pass_number = mean(h_pass_number_all);
 c_pass_number = mean(c_pass_number_all);
+total_ave_wait_time = mean(total_ave_wait_time_all);
+total_pass_number = mean(total_pass_number_all);
 
 
 save([DATA_PATH, datestr(now, 'yyyyddmmHHMMSSFFF')], ...
     'h_stage_all', 'c_stage_all', ...
     'h_ave_wait_time_all', 'c_ave_wait_time_all', ...
-    'h_pass_number_all', 'c_pass_number_all');
+    'h_pass_number_all', 'c_pass_number_all', ...
+    'total_ave_wait_time', 'total_pass_number');
 
 
