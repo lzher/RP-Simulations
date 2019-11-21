@@ -72,7 +72,7 @@ pc2 = semilogx(LAMBDAS, C_AVE_TIME2, 'r^-', 'linewidth', LINEWIDTH);
 ph1 = semilogx(LAMBDAS, H_AVE_TIME1, 'b*-', 'linewidth', LINEWIDTH);
 pc1 = semilogx(LAMBDAS, C_AVE_TIME1, 'b^-', 'linewidth', LINEWIDTH);
 xlabel('到达率 \lambda');
-ylabel('平均等待时间');
+ylabel('平均等待时间 (s)');
 legend([ph1, pc1, ph2, pc2, ph3, pc3], {H1, C1, H2, C2, H3, C3}, ...
     'location', 'northwest');
 
@@ -96,7 +96,7 @@ hold on;
 p2 = semilogx(LAMBDAS, T_AVE_TIME2, 'r*-', 'linewidth', LINEWIDTH);
 p1 = semilogx(LAMBDAS, T_AVE_TIME1, 'b*-', 'linewidth', LINEWIDTH);
 xlabel('到达率 \lambda');
-ylabel('总等待时延');
+ylabel('总平均等待时间 (s)');
 legend([p1, p2, p3], {T1, T2, T3}, 'location', 'northwest');
 
 f4 = figure;
